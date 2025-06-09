@@ -7,21 +7,18 @@ services:
     command:
       - --api.dashboard=true
       - --providers.docker=true
+      - --providers.file.filename=/etc/traefik/dynamic_conf.yml
       - --entrypoints.web.address=:80
       - --entrypoints.websecure.address=:443
-      - --certificatesresolvers.le.acme.httpchallenge=true
-      - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web
-      - --certificatesresolvers.le.acme.email=scarface@my-siem.lab  
-      - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json
     ports:
       - "80:80"
       - "443:443"
-      - "8080:8080" 
+      - "8080:8080"  # Dashboard HTTP avec authentification BasicAuth
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik/traefik.yml:/etc/traefik/traefik.yml
       - ./traefik/dynamic_conf.yml:/etc/traefik/dynamic_conf.yml
-      - ./traefik/acme.json:/letsencrypt/acme.json
+      - ./certs:/certs       # Montre le dossier avec ton certificat auto-signé
     networks:
       - frontend
 
@@ -32,10 +29,57 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.my-siem-app.rule=Host(`my-siem.lab`)"
       - "traefik.http.routers.my-siem-app.entrypoints=websecure"
-      - "traefik.http.routers.my-siem-app.tls.certresolver=le"
+      - "traefik.http.routers.my-siem-app.tls=true"  # On active juste TLS sans Let's Encrypt
+      - "traefik.http.services.my-siem-app.loadbalancer.server.port=80"
+    expose:
+      - "80" 
+    volumes:
+      - ./logs:/var/log/apache2   # Les logs Apache/Nginx seront récupérés
     networks:
       - frontend
+      - elk
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+    ports:
+      - "9200:9200"
+    networks:
+      - elk
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.12.0
+    container_name: logstash
+    ports:
+      - "5044:5044"
+      - "5000:5000/tcp"
+      - "5000:5000/udp"
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline
+      - ./logs:/logs
+    depends_on:
+      - elasticsearch
+    networks:
+      - elk
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.12.0
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    networks:
+      - elk
 
 networks:
   frontend:
+    driver: bridge
+  elk:
     driver: bridge

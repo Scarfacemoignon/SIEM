@@ -7,9 +7,9 @@ http:
 
   routers:
     dashboard:
-      rule: PathPrefix(`/`)
+      rule: Host(`localhost`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api`))
       service: api@internal
       entryPoints:
-        - traefik
+        - traefik 
       middlewares:
         - auth

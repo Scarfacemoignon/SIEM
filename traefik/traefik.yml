@@ -4,16 +4,16 @@ entryPoints:
   websecure:
     address: ":443"
   traefik:
-    address: ":8080"     # ✅ Très important
+    address: ":8080"     
 
 api:
-  dashboard: true        # ✅ PAS 'insecure: true' ici
+  dashboard: true        
 
 providers:
   docker:
     exposedByDefault: false
   file:
-    filename: /etc/traefik/dynamic_conf.yml   # ✅ pour charger la config dynamique
+    filename: /etc/traefik/dynamic_conf.yml   
 
 certificatesResolvers:
   le:
