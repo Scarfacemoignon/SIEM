@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  traefik:
+    image: traefik:v2.11
+    container_name: traefik
+    command:
+      - --api.dashboard=true
+      - --providers.docker=true
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.le.acme.httpchallenge=true
+      - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web
+      - --certificatesresolvers.le.acme.email=scarface@my-siem.lab  
+      - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080" 
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml
+      - ./traefik/dynamic_conf.yml:/etc/traefik/dynamic_conf.yml
+      - ./traefik/acme.json:/letsencrypt/acme.json
+    networks:
+      - frontend
+
+  my-siem-app:
+    image: scarface05/sec-waf-wazuh:1.0
+    container_name: my-siem-app
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.my-siem-app.rule=Host(`my-siem.lab`)"
+      - "traefik.http.routers.my-siem-app.entrypoints=websecure"
+      - "traefik.http.routers.my-siem-app.tls.certresolver=le"
+    networks:
+      - frontend
+
+networks:
+  frontend:
+    driver: bridge
