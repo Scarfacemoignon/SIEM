@@ -79,6 +79,15 @@ services:
       - elasticsearch
     networks:
       - elk
+  kali:
+    image: kalilinux/kali-rolling
+    container_name: kali
+    stdin_open: true
+    tty: true
+    networks:
+      - frontend
+    command: [ "sleep", "infinity" ]
+
 
 networks:
   frontend:
