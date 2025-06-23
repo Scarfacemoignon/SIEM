@@ -13,12 +13,12 @@ services:
     ports:
       - "80:80"
       - "443:443"
-      - "8080:8080"  # Dashboard HTTP avec authentification BasicAuth
+      - "8080:8080"  
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik/traefik.yml:/etc/traefik/traefik.yml
       - ./traefik/dynamic_conf.yml:/etc/traefik/dynamic_conf.yml
-      - ./certs:/certs       # Montre le dossier avec ton certificat auto-signé
+      - ./certs:/certs       
     networks:
       - frontend
 
@@ -29,12 +29,12 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.my-siem-app.rule=Host(`my-siem.lab`)"
       - "traefik.http.routers.my-siem-app.entrypoints=websecure"
-      - "traefik.http.routers.my-siem-app.tls=true"  # On active juste TLS sans Let's Encrypt
+      - "traefik.http.routers.my-siem-app.tls=true" 
       - "traefik.http.services.my-siem-app.loadbalancer.server.port=80"
     expose:
       - "80" 
     volumes:
-      - ./logs:/var/log/apache2   # Les logs Apache/Nginx seront récupérés
+      - ./logs:/var/log/apache2  
     networks:
       - frontend
       - elk
@@ -48,6 +48,8 @@ services:
       - ES_JAVA_OPTS=-Xms1g -Xmx1g
     ports:
       - "9200:9200"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data   
     networks:
       - elk
 
@@ -59,8 +61,8 @@ services:
       - "5000:5000/tcp"
       - "5000:5000/udp"
     volumes:
-      - ./logstash/pipeline:/usr/share/logstash/pipeline
-      - ./logs:/logs
+      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
+      - ./logs:/logs:ro
     depends_on:
       - elasticsearch
     networks:
@@ -83,3 +85,6 @@ networks:
     driver: bridge
   elk:
     driver: bridge
+
+volumes:
+  esdata: 

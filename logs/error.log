@@ -36,3 +36,5 @@
 [Mon Jun 09 16:55:14.816497 2025] [core:notice] [pid 235:tid 235] AH00094: Command line: '/usr/sbin/apache2'
 [Mon Jun 09 17:00:57.451394 2025] [mpm_prefork:notice] [pid 232:tid 232] AH00163: Apache/2.4.62 (Debian) PHP/8.3.12 configured -- resuming normal operations
 [Mon Jun 09 17:00:57.451866 2025] [core:notice] [pid 232:tid 232] AH00094: Command line: '/usr/sbin/apache2'
+[Mon Jun 23 08:52:28.856578 2025] [mpm_prefork:notice] [pid 244:tid 244] AH00163: Apache/2.4.62 (Debian) PHP/8.3.12 configured -- resuming normal operations
+[Mon Jun 23 08:52:28.857608 2025] [core:notice] [pid 244:tid 244] AH00094: Command line: '/usr/sbin/apache2'
